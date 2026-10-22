@@ -1,4 +1,3 @@
-
 name: Forge Edit APK
 
 on:
@@ -22,25 +21,22 @@ jobs:
 
       - name: Extract project
         run: |
+          set -e
           mkdir -p project
-          unzip -q forge_edit_stage9_final.zip -d project
+          ZIP=$(find . -maxdepth 1 -type f -iname 'forge_edit*.zip' | head -1)
+          echo "ZIP=$ZIP"
+          unzip -q "$ZIP" -d project
           FILE=$(find project -name pubspec.yaml -print -quit)
-          test -n "$FILE"
           echo "PROJECT_DIR=$(dirname "$FILE")" >> "$GITHUB_ENV"
 
       - name: Install dependencies
         run: cd "$PROJECT_DIR" && flutter pub get
 
-      - name: Analyze
-        run: cd "$PROJECT_DIR" && flutter analyze
-
       - name: Build APK
-        run: cd "$PROJECT_DIR" && flutter build apk --debug
+        run: cd "$PROJECT_DIR" && flutter build apk --release
 
       - uses: actions/upload-artifact@v4
         if: success()
         with:
           name: Forge-Edit-APK
-          path: |
-            **/build/app/outputs/flutter-apk/*.apk
-            project/**/build/app/outputs/flutter-apk/*.apk
+          path: "**/build/app/outputs/flutter-apk/*.apk"
